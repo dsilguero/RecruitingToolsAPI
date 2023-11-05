@@ -1,5 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using RecruitingToolsAPI.Data;
+using RecruitingToolsAPI.Repositories;
+using RecruitingToolsAPI.Repositories.Interfaces;
+using RecruitingToolsAPI.Services;
+using RecruitingToolsAPI.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("RecruitingToolsConnection");
@@ -13,6 +17,10 @@ builder.Services.AddSwaggerGen();
 
 //Database dependencies
 builder.Services.AddDbContext<RecruitingToolsDbContext>(x => x.UseSqlServer(connectionString));
+
+//Dependences injection for Services and Repositories
+builder.Services.AddScoped<ISelectionProcessService, SelectionProcessService>();
+builder.Services.AddScoped<ISelectionProcessRepository, SelectionProcessRepository>();
 
 
 var app = builder.Build();
