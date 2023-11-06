@@ -78,30 +78,7 @@ namespace RecruitingToolsAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Documents",
-                columns: table => new
-                {
-                    DocumentId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Content = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
-                    CandidateId = table.Column<int>(type: "int", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Documents", x => x.DocumentId);
-                    table.ForeignKey(
-                        name: "FK_Documents_Candidates_CandidateId",
-                        column: x => x.CandidateId,
-                        principalTable: "Candidates",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "SelectionProcesses",
+                name: "SelectionProcess",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -116,9 +93,9 @@ namespace RecruitingToolsAPI.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SelectionProcesses", x => x.Id);
+                    table.PrimaryKey("PK_SelectionProcess", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_SelectionProcesses_SelectionProcessStatuses_StatusId",
+                        name: "FK_SelectionProcess_SelectionProcessStatuses_StatusId",
                         column: x => x.StatusId,
                         principalTable: "SelectionProcessStatuses",
                         principalColumn: "Id",
@@ -152,9 +129,9 @@ namespace RecruitingToolsAPI.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_CandidateSelectionProcess_SelectionProcesses_SelectionProcessId",
+                        name: "FK_CandidateSelectionProcess_SelectionProcess_SelectionProcessId",
                         column: x => x.SelectionProcessId,
-                        principalTable: "SelectionProcesses",
+                        principalTable: "SelectionProcess",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -178,9 +155,46 @@ namespace RecruitingToolsAPI.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_RecruiterSelectionProcess_SelectionProcesses_SelectionProcessId",
+                        name: "FK_RecruiterSelectionProcess_SelectionProcess_SelectionProcessId",
                         column: x => x.SelectionProcessId,
-                        principalTable: "SelectionProcesses",
+                        principalTable: "SelectionProcess",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Documents",
+                columns: table => new
+                {
+                    DocumentId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Content = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
+                    CandidateId = table.Column<int>(type: "int", nullable: false),
+                    SelectionProcessId = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CandidateSelectionProcessCandidateId = table.Column<int>(type: "int", nullable: true),
+                    CandidateSelectionProcessSelectionProcessId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Documents", x => x.DocumentId);
+                    table.ForeignKey(
+                        name: "FK_Documents_CandidateSelectionProcess_CandidateSelectionProcessCandidateId_CandidateSelectionProcessSelectionProcessId",
+                        columns: x => new { x.CandidateSelectionProcessCandidateId, x.CandidateSelectionProcessSelectionProcessId },
+                        principalTable: "CandidateSelectionProcess",
+                        principalColumns: new[] { "CandidateId", "SelectionProcessId" });
+                    table.ForeignKey(
+                        name: "FK_Documents_Candidates_CandidateId",
+                        column: x => x.CandidateId,
+                        principalTable: "Candidates",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Documents_SelectionProcess_CandidateId",
+                        column: x => x.CandidateId,
+                        principalTable: "SelectionProcess",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -201,13 +215,18 @@ namespace RecruitingToolsAPI.Migrations
                 column: "CandidateId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Documents_CandidateSelectionProcessCandidateId_CandidateSelectionProcessSelectionProcessId",
+                table: "Documents",
+                columns: new[] { "CandidateSelectionProcessCandidateId", "CandidateSelectionProcessSelectionProcessId" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_RecruiterSelectionProcess_SelectionProcessId",
                 table: "RecruiterSelectionProcess",
                 column: "SelectionProcessId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SelectionProcesses_StatusId",
-                table: "SelectionProcesses",
+                name: "IX_SelectionProcess_StatusId",
+                table: "SelectionProcess",
                 column: "StatusId");
         }
 
@@ -215,13 +234,16 @@ namespace RecruitingToolsAPI.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "CandidateSelectionProcess");
-
-            migrationBuilder.DropTable(
                 name: "Documents");
 
             migrationBuilder.DropTable(
                 name: "RecruiterSelectionProcess");
+
+            migrationBuilder.DropTable(
+                name: "CandidateSelectionProcess");
+
+            migrationBuilder.DropTable(
+                name: "Recruiters");
 
             migrationBuilder.DropTable(
                 name: "CandidateStatuses");
@@ -230,10 +252,7 @@ namespace RecruitingToolsAPI.Migrations
                 name: "Candidates");
 
             migrationBuilder.DropTable(
-                name: "Recruiters");
-
-            migrationBuilder.DropTable(
-                name: "SelectionProcesses");
+                name: "SelectionProcess");
 
             migrationBuilder.DropTable(
                 name: "SelectionProcessStatuses");

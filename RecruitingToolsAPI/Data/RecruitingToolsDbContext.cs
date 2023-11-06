@@ -8,9 +8,12 @@ namespace RecruitingToolsAPI.Data
         public RecruitingToolsDbContext(DbContextOptions<RecruitingToolsDbContext> options) : base(options) { }
 
         public DbSet<Recruiter> Recruiters { get; set; }
-        public DbSet<SelectionProcess> SelectionProcesses { get; set; }
+        public DbSet<RecruiterSelectionProcess> RecruiterSelectionProcess { get; set; }
+
+        public DbSet<SelectionProcess> SelectionProcess { get; set; }
         public DbSet<SelectionProcessStatus> SelectionProcessStatuses { get; set; }
         public DbSet<Candidate> Candidates { get; set; }
+        public DbSet<CandidateSelectionProcess> CandidateSelectionProcess { get; set; }
         public DbSet<CandidateStatus> CandidateStatuses { get; set; }
         public DbSet<Document> Documents { get; set; }
 
@@ -25,21 +28,28 @@ namespace RecruitingToolsAPI.Data
 
             // One to Many relation between SelectionProcess and SelectionProcessStatus
             modelBuilder.Entity<SelectionProcess>()
-                .HasOne(p => p.Status)
-                .WithMany(c => c.SelectionProcesses)
-                .HasForeignKey(p => p.StatusId);
+                .HasOne(sp => sp.Status)
+                .WithMany(spt => spt.SelectionProcesses)
+                .HasForeignKey(sp => sp.StatusId);
 
             // One to Many relation between CandidateSelectionProcess and CandidateStatus
             modelBuilder.Entity<CandidateSelectionProcess>()
-                .HasOne(p => p.CandidateStatus)
-                .WithMany(c => c.Candidates)
-                .HasForeignKey(p => p.CandidateStatusId);
+                .HasOne(cp => cp.CandidateStatus)
+                .WithMany(cst => cst.Candidates)
+                .HasForeignKey(cp => cp.CandidateStatusId);
 
             // One to Many relation between Candidate and Document
-            modelBuilder.Entity<Candidate>()
-                .HasMany(c => c.Documents)
-                .WithOne(d => d.Candidate)
-                .HasForeignKey(d => d.CandidateId);
+            modelBuilder.Entity<Document>()
+                .HasOne(doc => doc.Candidate)
+                .WithMany(doc => doc.Documents)
+                .HasForeignKey(doc => doc.CandidateId);
+
+            // One to Many relation between SelectionProcess and Document
+            modelBuilder.Entity<Document>()
+                .HasOne(doc => doc.SelectionProcess)
+                .WithMany(doc => doc.Documents)
+                .HasForeignKey(doc => doc.CandidateId);
+
 
             // Many to Many relation between Candidate and SelectionProcess (multiple processes of the candidate)
             modelBuilder.Entity<CandidateSelectionProcess>()

@@ -1,83 +1,79 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using RecruitingToolsAPI.Models;
+using RecruitingToolsAPI.Services.Interfaces;
 
 namespace RecruitingToolsAPI.Controllers
 {
+    [Route("api/selectionprocess")]
     public class SelectionProcessController : Controller
     {
-        // GET: SelectionProcessController
-        public ActionResult Index()
+        private readonly ISelectionProcessService _selectionProcessService;
+
+        public SelectionProcessController(ISelectionProcessService selectionProcessService)
         {
-            return View();
+            _selectionProcessService = selectionProcessService;
         }
 
-        // GET: SelectionProcessController/Details/5
-        public ActionResult Details(int id)
+        [HttpGet]
+        public async Task<IActionResult> GetAllSelectionProcesses()
         {
-            return View();
+            var selectionProcesses = await _selectionProcessService.GetAllSelectionProcessesAsync();
+            return Ok(selectionProcesses);
         }
 
-        // GET: SelectionProcessController/Create
-        public ActionResult Create()
+        [HttpGet("{id}/candidates", Name = "GetSelectionProcessCandidates")]
+        public async Task<IActionResult> GetSelectionProcessCandidates(int id)
         {
-            return View();
+            var selectionProcesses = await _selectionProcessService.GetSelectionProcessCandidates(id);
+            return Ok(selectionProcesses);
         }
 
-        // POST: SelectionProcessController/Create
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetSelectionProcess(int id)
+        {
+            var selectionProcess = await _selectionProcessService.GetSelectionProcessByIdAsync(id);
+            if (selectionProcess == null)
+            {
+                return NotFound();
+            }
+            return Ok(selectionProcess);
+        }
+
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public async Task<IActionResult> CreateSelectionProcess([FromBody] SelectionProcess selectionProcess)
         {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+            var newSelectionProcess = await _selectionProcessService.CreateSelectionProcessAsync(selectionProcess);
+            return Ok(newSelectionProcess);
         }
 
-        // GET: SelectionProcessController/Edit/5
-        public ActionResult Edit(int id)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateSelectionProcess(int id, [FromBody] SelectionProcess selectionProcess)
         {
-            return View();
+            if (id != selectionProcess.Id)
+            {
+                return BadRequest();
+            }
+
+            var updatedSelectionProcess = await _selectionProcessService.UpdateSelectionProcessAsync(selectionProcess);
+
+            if (updatedSelectionProcess <= 0)
+            {
+                return NotFound();
+            }
+
+            return Ok(updatedSelectionProcess);
         }
 
-        // POST: SelectionProcessController/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteSelectionProcess(int id)
         {
-            try
+            var deleted = await _selectionProcessService.DeleteSelectionProcessAsync(id);
+            if (!deleted)
             {
-                return RedirectToAction(nameof(Index));
+                return NotFound();
             }
-            catch
-            {
-                return View();
-            }
-        }
-
-        // GET: SelectionProcessController/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
-
-        // POST: SelectionProcessController/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+            return Ok();
         }
     }
 }

@@ -1,5 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using RecruitingToolsAPI.Data;
+using RecruitingToolsAPI.Repositories;
+using RecruitingToolsAPI.Repositories.Interfaces;
+using RecruitingToolsAPI.Services;
+using RecruitingToolsAPI.Services.Interfaces;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("RecruitingToolsConnection");
@@ -13,6 +18,15 @@ builder.Services.AddSwaggerGen();
 
 //Database dependencies
 builder.Services.AddDbContext<RecruitingToolsDbContext>(x => x.UseSqlServer(connectionString));
+
+//Dependences injection for Services and Repositories
+builder.Services.AddScoped<ISelectionProcessService, SelectionProcessService>();
+builder.Services.AddScoped<ISelectionProcessRepository, SelectionProcessRepository>();
+builder.Services.AddScoped<ISelectionProcessStatusRepository, SelectionProcessStatusRepository>();
+
+//Ingore cycles in Json Serializer
+builder.Services.AddControllers().AddJsonOptions(x =>
+                x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
 
 var app = builder.Build();

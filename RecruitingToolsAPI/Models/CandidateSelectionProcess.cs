@@ -13,5 +13,6 @@
         public CandidateStatus CandidateStatus { get; set; }
         public Candidate Candidate { get; set; }
         public SelectionProcess SelectionProcess { get; set; }
+        public List<Document> Documents { get; set; }
     }
 }
