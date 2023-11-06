@@ -16,10 +16,16 @@ namespace RecruitingToolsAPI.Controllers
         }
 
         [HttpGet]
-        [Route("GetAll")]
         public async Task<IActionResult> GetAllSelectionProcesses()
         {
             var selectionProcesses = await _selectionProcessService.GetAllSelectionProcessesAsync();
+            return Ok(selectionProcesses);
+        }
+
+        [HttpGet("{id}/candidates", Name = "GetSelectionProcessCandidates")]
+        public async Task<IActionResult> GetSelectionProcessCandidates(int id)
+        {
+            var selectionProcesses = await _selectionProcessService.GetSelectionProcessCandidates(id);
             return Ok(selectionProcesses);
         }
 
@@ -38,7 +44,7 @@ namespace RecruitingToolsAPI.Controllers
         public async Task<IActionResult> CreateSelectionProcess([FromBody] SelectionProcess selectionProcess)
         {
             var newSelectionProcess = await _selectionProcessService.CreateSelectionProcessAsync(selectionProcess);
-            return CreatedAtAction(nameof(GetSelectionProcess), new { id = newSelectionProcess });
+            return Ok(newSelectionProcess);
         }
 
         [HttpPut("{id}")]
@@ -67,7 +73,7 @@ namespace RecruitingToolsAPI.Controllers
             {
                 return NotFound();
             }
-            return NoContent();
+            return Ok();
         }
     }
 }

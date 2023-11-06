@@ -7,26 +7,37 @@ namespace RecruitingToolsAPI.Repositories
 {
     public class SelectionProcessRepository : ISelectionProcessRepository
     {
-        private readonly RecruitingToolsDbContext _context; // Reemplaza YourDbContext con el contexto de tu base de datos.
+        private readonly RecruitingToolsDbContext _context;
 
-        public SelectionProcessRepository(RecruitingToolsDbContext context) // Inyecta el DbContext en el constructor.
+        public SelectionProcessRepository(RecruitingToolsDbContext context) 
         {
             _context = context;
         }
 
-        public async Task<SelectionProcess> GetByIdAsync(int id)
+        public async Task<SelectionProcess> GetByIdAsync(int processId)
         {
-            return await _context.SelectionProcesses.FindAsync(id);
+            return await _context.SelectionProcess
+                                 .Include(sp => sp.Status)
+                                 .Include(sp => sp.Recruiters)
+                                 .Include(sp => sp.Documents)
+                                 .Include(sp => sp.Candidates)
+                                 .FirstAsync(sp => sp.Id == processId);
+
         }
 
         public async Task<List<SelectionProcess>> GetAllAsync()
         {
-            return await _context.SelectionProcesses.ToListAsync();
+            return await _context.SelectionProcess
+                        .Include(sp => sp.Candidates)
+                        .Include(sp => sp.Recruiters)
+                        .Include(sp => sp.Documents)
+                        .Include(sp => sp.Status)
+                        .ToListAsync();
         }
 
         public async Task<int> AddAsync(SelectionProcess process)
         {
-            _context.SelectionProcesses.Add(process);
+            _context.SelectionProcess.Add(process);
             return await _context.SaveChangesAsync();
         }
 
@@ -38,17 +49,27 @@ namespace RecruitingToolsAPI.Repositories
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var process = await _context.SelectionProcesses.FindAsync(id);
+            var process = await _context.SelectionProcess.FindAsync(id);
             var res = false;
 
             if (process != null)
             {
-                _context.SelectionProcesses.Remove(process);
+                _context.SelectionProcess.Remove(process);
                 await _context.SaveChangesAsync();
                 res = true;
             }
 
             return res;
+        }
+
+        public async Task<List<CandidateSelectionProcess>> GetCandidates(int processId)
+        {
+            var process = await _context.SelectionProcess
+                                .Include(sp => sp.Candidates)
+                                .Include(sp => sp.Documents)
+                                .FirstAsync(x => x.Id == processId);
+
+            return process.Candidates ?? new List<CandidateSelectionProcess>();
         }
     }
 

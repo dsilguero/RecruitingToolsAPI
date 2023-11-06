@@ -12,7 +12,7 @@ using RecruitingToolsAPI.Data;
 namespace RecruitingToolsAPI.Migrations
 {
     [DbContext(typeof(RecruitingToolsDbContext))]
-    [Migration("20231105095427_Initial")]
+    [Migration("20231106162601_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -121,6 +121,12 @@ namespace RecruitingToolsAPI.Migrations
                     b.Property<int>("CandidateId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("CandidateSelectionProcessCandidateId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CandidateSelectionProcessSelectionProcessId")
+                        .HasColumnType("int");
+
                     b.Property<byte[]>("Content")
                         .IsRequired()
                         .HasColumnType("varbinary(max)");
@@ -132,12 +138,17 @@ namespace RecruitingToolsAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("SelectionProcessId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
                     b.HasKey("DocumentId");
 
                     b.HasIndex("CandidateId");
+
+                    b.HasIndex("CandidateSelectionProcessCandidateId", "CandidateSelectionProcessSelectionProcessId");
 
                     b.ToTable("Documents");
                 });
@@ -232,7 +243,7 @@ namespace RecruitingToolsAPI.Migrations
 
                     b.HasIndex("StatusId");
 
-                    b.ToTable("SelectionProcesses");
+                    b.ToTable("SelectionProcess");
                 });
 
             modelBuilder.Entity("RecruitingToolsAPI.Models.SelectionProcessStatus", b =>
@@ -293,7 +304,19 @@ namespace RecruitingToolsAPI.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("RecruitingToolsAPI.Models.SelectionProcess", "SelectionProcess")
+                        .WithMany("Documents")
+                        .HasForeignKey("CandidateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("RecruitingToolsAPI.Models.CandidateSelectionProcess", null)
+                        .WithMany("Documents")
+                        .HasForeignKey("CandidateSelectionProcessCandidateId", "CandidateSelectionProcessSelectionProcessId");
+
                     b.Navigation("Candidate");
+
+                    b.Navigation("SelectionProcess");
                 });
 
             modelBuilder.Entity("RecruitingToolsAPI.Models.RecruiterSelectionProcess", b =>
@@ -333,6 +356,11 @@ namespace RecruitingToolsAPI.Migrations
                     b.Navigation("SelectionProcesses");
                 });
 
+            modelBuilder.Entity("RecruitingToolsAPI.Models.CandidateSelectionProcess", b =>
+                {
+                    b.Navigation("Documents");
+                });
+
             modelBuilder.Entity("RecruitingToolsAPI.Models.CandidateStatus", b =>
                 {
                     b.Navigation("Candidates");
@@ -346,6 +374,8 @@ namespace RecruitingToolsAPI.Migrations
             modelBuilder.Entity("RecruitingToolsAPI.Models.SelectionProcess", b =>
                 {
                     b.Navigation("Candidates");
+
+                    b.Navigation("Documents");
 
                     b.Navigation("Recruiters");
                 });

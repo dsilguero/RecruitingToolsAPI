@@ -6,36 +6,48 @@ namespace RecruitingToolsAPI.Services
 {
     public class SelectionProcessService : ISelectionProcessService
     {
-        private readonly ISelectionProcessRepository _repository;
+        private readonly ISelectionProcessRepository _selectionProcessRepository;
+        private readonly ISelectionProcessStatusRepository _selectionProcessStatus;
 
-        public SelectionProcessService(ISelectionProcessRepository repository)
+        public SelectionProcessService(ISelectionProcessRepository repository, ISelectionProcessStatusRepository selectionProcessStatus)
         {
-            _repository = repository;
+            _selectionProcessRepository = repository;
+            _selectionProcessStatus = selectionProcessStatus;
         }
 
         public async Task<SelectionProcess> GetSelectionProcessByIdAsync(int id)
         {
-            return await _repository.GetByIdAsync(id);
+            return await _selectionProcessRepository.GetByIdAsync(id);
         }
 
         public async Task<List<SelectionProcess>> GetAllSelectionProcessesAsync()
         {
-            return await _repository.GetAllAsync();
+            return await _selectionProcessRepository.GetAllAsync();
         }
 
         public async Task<int> CreateSelectionProcessAsync(SelectionProcess process)
         {
-            return await _repository.AddAsync(process);
+            if(process.Status == null)
+            {
+                process.Status = await _selectionProcessStatus.GetByIdAsync(process.StatusId);
+
+            }
+            return await _selectionProcessRepository.AddAsync(process);
         }
 
         public async Task<int> UpdateSelectionProcessAsync(SelectionProcess process)
         {
-            return await _repository.UpdateAsync(process);
+            return await _selectionProcessRepository.UpdateAsync(process);
         }
 
         public async Task<bool> DeleteSelectionProcessAsync(int id)
         {
-            return await _repository.DeleteAsync(id);
+            return await _selectionProcessRepository.DeleteAsync(id);
+        }
+
+        public async Task<List<CandidateSelectionProcess>> GetSelectionProcessCandidates(int id)
+        {
+            return await _selectionProcessRepository.GetCandidates(id);
         }
     }
 }
